@@ -111,20 +111,17 @@ The app will build the frontend, start the server on `http://127.0.0.1:5050`, an
 
 ## Using a prebuilt release
 
-1. Download the latest `LexiMind.zip` from the [Releases](https://github.com/YOUR_USERNAME/leximind/releases) page.
-2. Extract the zip anywhere — the folder structure inside should look like this:
+1. Download the latest `LexiMind-vX.X.X-win-x64.exe` from the [Releases](https://github.com/jezmn/leximind/releases) page.
+2. Create a folder `leximind/` anywhere and inside it create a `model/` subfolder, then move the `.exe` into `leximind/`:
 
-   ```
-   LexiMind/
-   ├── config/
-   │   └── prompts.toon
-   ├── model/          ← create this folder
+```
+   leximind/            ← create this folder
+   ├── model/           ← create this folder inside
    │   └── microsoft_Phi-4-mini-instruct-Q6_K.gguf  ← place the model here
-   └── LexiMind.exe
-   ```
-
-3. If the `model/` folder does not exist, **create it** inside the extracted directory.
-4. Download the model file (see [Recommended model](#recommended-model) above) and place it inside `model/`.
+   └── LexiMind.exe     ← move the downloaded .exe here
+```
+3. Download the model file (see [Recommended model](#recommended-model) above) and place it inside `model/`.
+4. Run `LexiMind.exe`.
 5. Run `LexiMind.exe`.
 
 That's it. No Python, no Node, no dependencies to install.
