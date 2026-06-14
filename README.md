@@ -36,9 +36,9 @@ LexiMind is designed for kids aged 9–12 at an A1–A2 English level. It uses G
 
 Download the model and place it inside a `model/` folder in the app directory. The app looks for `model/*.gguf` at startup.
 
-| Model | File size | Real RAM usage |
-|---|---|---|
-| [microsoft_Phi-4-mini-instruct-Q6_K.gguf](https://huggingface.co/bartowski/microsoft_Phi-4-mini-instruct-GGUF/blob/main/microsoft_Phi-4-mini-instruct-Q6_K.gguf) | 3.16 GB | ~500 MB |
+| Model | File size |
+|---|---|
+| [microsoft_Phi-4-mini-instruct-Q6_K.gguf](https://huggingface.co/bartowski/microsoft_Phi-4-mini-instruct-GGUF/blob/main/microsoft_Phi-4-mini-instruct-Q6_K.gguf) | 3.16 GB |
 
 > **How to download:** open the link above, click the **"Download"** button on the HuggingFace page, and save the file as `microsoft_Phi-4-mini-instruct-Q6_K.gguf` inside the `model/` folder.
 
@@ -83,13 +83,12 @@ set LEXIMIND_MODEL=phi    # loads the first .gguf containing "phi" in its name
 
 ```bash
 # Clone the repo
-git clone https://github.com/YOUR_USERNAME/leximind.git
+git clone https://github.com/jezmn/leximind.git
 cd leximind
 
 # Backend
 python -m venv venv
 venv\Scripts\activate     # Windows
-# source venv/bin/activate  # Linux/macOS
 pip install --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu -r requirements.txt
 
 # If llama-cpp-python fails to install, see "Building llama-cpp-python" below.
@@ -97,6 +96,7 @@ pip install --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
 # Frontend
 cd chat
 npm install
+npm run build
 cd ..
 
 # Download the model (see Recommended Model above) and place it in model/
