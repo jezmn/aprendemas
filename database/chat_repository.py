@@ -9,8 +9,10 @@ class ChatRepository:
         self._init_database()
     
     def _init_database(self):
-        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        self.conn = sqlite3.connect(self.db_path, check_same_thread=False, timeout=10)
         cursor = self.conn.cursor()
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("PRAGMA synchronous=NORMAL")
         
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS chat_sessions (

@@ -46,7 +46,7 @@ async def chat(request: ChatRequest, req: Request):
     )
     
     history = repo.get_conversation_history(session_id, limit=6)
-    response = engine.generate_response(request.message, history)
+    reasoning, response = engine.generate_response(request.message, history, show_thinking=request.show_thinking or False)
     repo.save_message(session_id, request.message, response)
     
     title = None
@@ -77,9 +77,12 @@ async def chat_stream(request: ChatRequest, req: Request):
 
     def generate():
         full_response = ""
-        for token in engine.generate_stream(request.message, history):
-            full_response += token
-            yield f"data: {json.dumps({'token': token})}\n\n"
+        for chunk in engine.generate_stream(request.message, history, show_thinking=request.show_thinking or False):
+            if "reasoning" in chunk:
+                yield f"data: {json.dumps({'reasoning': chunk['reasoning']})}\n\n"
+            elif "content" in chunk:
+                full_response += chunk["content"]
+                yield f"data: {json.dumps({'token': chunk['content']})}\n\n"
 
         repo.save_message(session_id, request.message, full_response)
 

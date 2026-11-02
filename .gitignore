@@ -4,11 +4,17 @@ venv/
 __pycache__/
 *.pyc
 *.db
+*.db-shm
+*.db-wal
 model/*.gguf
 *.spec
-!LexiMind.spec
+!AprendeMas.spec
 aprendizaje_progreso.json
 .vscode/
 .env
 *.log
 nul
+.pnpm-store/
+# Voice models are committed to voices/ but ignored by git (large binaries).
+voices/*.onnx
+voices/*.onnx.json

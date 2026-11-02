@@ -8,6 +8,7 @@ class ChatRequest(BaseModel):
     user_id: Optional[str] = "default_user"
     pdf_page: Optional[int] = None
     pdf_name: Optional[str] = None
+    show_thinking: Optional[bool] = False
 
 
 class ChatResponse(BaseModel):

@@ -13,12 +13,13 @@ from fastapi.responses import FileResponse
 import uvicorn
 
 from api.endpoints import router as api_router
+from api.tts_endpoints import router as tts_router
 from database.chat_repository import ChatRepository
 from core.chat_engine import ChatEngine
 from config import MODEL_DIR, DATABASE_PATH, DEFAULT_PORT
 
 
-BANNER = "\n  LEXIMIND\n"
+BANNER = "\n  AprendeMas\n"
 
 
 def get_base_dir():
@@ -30,7 +31,23 @@ def get_base_dir():
 def open_browser_after_start(port: int, delay: float = 3.0):
     def _open():
         time.sleep(delay)
-        webbrowser.open(f"http://127.0.0.1:{port}")
+        url = f"http://127.0.0.1:{port}"
+        try:
+            if os.name == "nt":
+                os.startfile(url)  # Windows: silent
+            else:
+                # Detached with stdio discarded: Chromium leaks zygote noise otherwise
+                try:
+                    subprocess.Popen(
+                        ["xdg-open", url],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        start_new_session=True,
+                    )
+                except FileNotFoundError:
+                    webbrowser.open(url)
+        except Exception:
+            webbrowser.open(url)
     thread = threading.Thread(target=_open, daemon=True)
     thread.start()
 
@@ -44,7 +61,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="LexiMind",
+    title="AprendeMas",
     description="Chatbot persistente con LLM y SQLite",
     version="1.0.0",
     lifespan=lifespan
@@ -62,6 +79,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix="/api")
+app.include_router(tts_router, prefix="/api")
 
 
 @app.get("/")
@@ -87,11 +105,11 @@ if __name__ == "__main__":
         frontend_dir = os.path.join(BASE_DIR, "chat")
         pkg_json = os.path.join(frontend_dir, "package.json")
         if os.path.exists(pkg_json) and os.path.exists(os.path.join(frontend_dir, "node_modules")):
-            subprocess.run(["npm", "run", "build"], cwd=frontend_dir, shell=True)
+            subprocess.run(["pnpm", "run", "build"], cwd=frontend_dir)
     print(f"[*] Iniciando servidor en el puerto {DEFAULT_PORT}")
     open_browser_after_start(DEFAULT_PORT)
     print("-" * 50)
-    print(f"[OK] LexiMind esta listo! Abriendo navegador...")
+    print(f"[OK] AprendeMas esta listo! Abriendo navegador...")
     print(f"     http://127.0.0.1:{DEFAULT_PORT}")
     print("-" * 50)
     print("     Cierra esta ventana cuando quieras salir\n")

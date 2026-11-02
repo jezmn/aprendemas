@@ -19,8 +19,6 @@
   },
   "dependencies": {
     "lucide-svelte": "^1.0.1",
-    "marked": "^18.0.3",
-    "pdfjs-dist": "^5.6.205",
-    "tesseract.js": "^7.0.0"
+    "marked": "^18.0.3"
   }
 }
