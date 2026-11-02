@@ -1,55 +1,63 @@
 @import "tailwindcss";
 
 :root {
-  font-family: Inter, "Segoe UI", sans-serif;
-  color: #0f172a;
-  background: #f7fbff;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    font-family: Inter, "Segoe UI", sans-serif;
+    color: #0f172a;
+    background: #f7fbff;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 html,
 body,
 #app {
-  min-height: 100vh;
+    min-height: 100vh;
 }
 
 body {
-  margin: 0;
-  background:
-    radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 28%),
-    radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent 24%),
-    linear-gradient(180deg, #fcfbff 0%, #f6f0ff 48%, #f7fbff 100%);
+    margin: 0;
+    background:
+        radial-gradient(
+            circle at top left,
+            rgba(37, 99, 235, 0.16),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at top right,
+            rgba(59, 130, 246, 0.1),
+            transparent 24%
+        ),
+        linear-gradient(180deg, #fcfbff 0%, #f6f0ff 48%, #f7fbff 100%);
 }
 
 button,
 input,
 textarea {
-  font: inherit;
+    font: inherit;
 }
 
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 ::selection {
-  background: rgba(37, 99, 235, 0.18);
+    background: rgba(37, 99, 235, 0.18);
 }
-
 
 :focus-visible {
-  outline: 2px solid #2563eb;
-  outline-offset: 2px;
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
 }
 
-
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }

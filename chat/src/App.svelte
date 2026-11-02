@@ -1,5 +1,5 @@
 <script>
-  import Chat from './lib/Chat.svelte';
+    import Chat from "./lib/Chat.svelte";
 </script>
 
 <Chat />

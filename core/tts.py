@@ -10,7 +10,6 @@ import json
 import os
 import sys
 import threading
-from typing import Optional
 
 from piper import PiperVoice, SynthesisConfig
 
@@ -18,7 +17,7 @@ from config import _get_data_dir
 
 _VOICE_DIRS = [os.path.join(_get_data_dir(), "voices")]
 if getattr(sys, "frozen", False):
-    _VOICE_DIRS.append(os.path.join(sys._MEIPASS, "voices"))
+    _VOICE_DIRS.append(os.path.join(getattr(sys, "_MEIPASS", ""), "voices"))
 _PIPER_SHARE = os.path.expanduser("~/.local/share/piper-voices")
 
 # espeak-ng data override for PyInstaller builds
@@ -28,18 +27,18 @@ _cache_lock = threading.Lock()
 _cache: dict[str, tuple[bytes, int]] = {}
 _cache_limit = 128
 
-_models: Optional[dict[str, str]] = None
+_models: dict[str, str] | None = None
 _loaded: dict[str, PiperVoice] = {}
 
 
-def _language_of(onnx_path: str) -> Optional[str]:
+def _language_of(onnx_path: str) -> str | None:
     """Language code ("en", "es") of a model, from its config or filename."""
     try:
         with open(onnx_path + ".json", encoding="utf-8") as f:
             code = (json.load(f).get("language") or {}).get("code")
         if code:
             return code.split("_")[0].split("-")[0].lower()
-    except Exception:
+    except Exception:  # noqa: S110, BLE001 - a malformed config falls back to the filename
         pass
     name = os.path.basename(onnx_path)
     prefix = name.split("_", 1)[0]
@@ -72,7 +71,7 @@ def available_langs() -> list[str]:
     return sorted(discover())
 
 
-def _voice_for(lang: str) -> Optional[PiperVoice]:
+def _voice_for(lang: str) -> PiperVoice | None:
     """Loaded voice for a language, falling back to any installed voice."""
     models = discover()
     if not models:
@@ -82,7 +81,7 @@ def _voice_for(lang: str) -> Optional[PiperVoice]:
         if path in _loaded:
             return _loaded[path]
     kwargs = {"espeak_data_dir": _ESPEAK_DATA} if _ESPEAK_DATA else {}
-    voice = PiperVoice.load(path, **kwargs)
+    voice = PiperVoice.load(path, **kwargs)  # type: ignore[arg-type]
     with _cache_lock:
         _loaded[path] = voice
     return voice
@@ -92,7 +91,7 @@ def _voice_for(lang: str) -> Optional[PiperVoice]:
 _LENGTH_SCALE = float(os.environ.get("PIPER_LENGTH_SCALE", "1.2"))
 
 
-def synth(text: str, lang: str = "en") -> Optional[tuple[bytes, int]]:
+def synth(text: str, lang: str = "en") -> tuple[bytes, int] | None:
     """Synthesize speech. Returns (16-bit mono PCM, sample_rate) or None."""
     text = (text or "").strip()
     if not text:
@@ -115,7 +114,7 @@ def synth(text: str, lang: str = "en") -> Optional[tuple[bytes, int]]:
         for chunk in voice.synthesize(text, syn_config=config):
             pcm.extend(chunk.audio_int16_bytes)
             sample_rate = chunk.sample_rate or sample_rate
-    except Exception:
+    except Exception:  # noqa: BLE001
         return None
     if not pcm:
         return None

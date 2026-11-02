@@ -1,0 +1,6 @@
+{
+  "typeCheckingMode": "standard",
+  "venvPath": ".",
+  "venv": "venv",
+  "exclude": ["venv", "chat", "dist", "build", "node_modules", "__pycache__"]
+}

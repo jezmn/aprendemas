@@ -1,5 +1,4 @@
 import asyncio
-from typing import Optional
 from urllib.parse import parse_qs
 
 from fastapi import APIRouter, HTTPException, Request
@@ -34,20 +33,20 @@ async def stream_tts(request: Request):
     if not available_langs():
         raise HTTPException(status_code=404, detail="No voice models installed")
 
-    result: Optional[tuple[bytes, int]] = await asyncio.to_thread(synth, text, lang)
+    result: tuple[bytes, int] | None = await asyncio.to_thread(synth, text, lang)
     if not result:
         raise HTTPException(status_code=503, detail="Synthesis failed")
 
     raw, sample_rate = result
 
-    async def body():
+    async def chunked():
         chunk = 4096
         for i in range(0, len(raw), chunk):
             yield raw[i : i + chunk]
             await asyncio.sleep(0)
 
     return StreamingResponse(
-        body(),
+        chunked(),
         media_type="audio/pcm",
         headers={"X-Sample-Rate": str(sample_rate)},
     )

@@ -1,11 +1,11 @@
 import json
 from datetime import datetime
-from typing import List, Optional
+
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from schemas import ChatRequest, ChatResponse, ChatHistoryResponse
+from schemas import ChatHistoryResponse, ChatRequest, ChatResponse
 
 router = APIRouter()
 
@@ -16,10 +16,10 @@ class SessionInfo(BaseModel):
     message_count: int
     created_at: str
     last_activity: str
-    title: Optional[str] = None
+    title: str | None = None
 
 
-@router.get("/sessions", response_model=List[SessionInfo])
+@router.get("/sessions", response_model=list[SessionInfo])
 async def list_sessions(req: Request):
     repo = req.app.state.chat_repository
     return repo.get_all_sessions()
@@ -38,27 +38,30 @@ async def delete_session(session_id: str, req: Request):
 async def chat(request: ChatRequest, req: Request):
     repo = req.app.state.chat_repository
     engine = req.app.state.chat_engine
-    
+
     is_new = not request.session_id or not repo.session_exists(request.session_id)
     session_id = (
-        request.session_id if not is_new and request.session_id
+        request.session_id
+        if not is_new and request.session_id
         else repo.create_session(request.user_id or "anonymous")
     )
-    
+
     history = repo.get_conversation_history(session_id, limit=6)
-    reasoning, response = engine.generate_response(request.message, history, show_thinking=request.show_thinking or False)
+    _reasoning, response = engine.generate_response(
+        request.message, history, show_thinking=request.show_thinking or False
+    )
     repo.save_message(session_id, request.message, response)
-    
+
     title = None
     if is_new:
         title = engine.generate_title(request.message)
         repo.update_session_title(session_id, title)
-    
+
     return ChatResponse(
         response=response,
         session_id=session_id,
         message_count=repo.get_message_count(session_id),
-        title=title
+        title=title,
     )
 
 
@@ -69,7 +72,8 @@ async def chat_stream(request: ChatRequest, req: Request):
 
     is_new = not request.session_id or not repo.session_exists(request.session_id)
     session_id = (
-        request.session_id if not is_new and request.session_id
+        request.session_id
+        if not is_new and request.session_id
         else repo.create_session(request.user_id or "anonymous")
     )
 
@@ -77,7 +81,9 @@ async def chat_stream(request: ChatRequest, req: Request):
 
     def generate():
         full_response = ""
-        for chunk in engine.generate_stream(request.message, history, show_thinking=request.show_thinking or False):
+        for chunk in engine.generate_stream(
+            request.message, history, show_thinking=request.show_thinking or False
+        ):
             if "reasoning" in chunk:
                 yield f"data: {json.dumps({'reasoning': chunk['reasoning']})}\n\n"
             elif "content" in chunk:
@@ -100,14 +106,14 @@ async def chat_stream(request: ChatRequest, req: Request):
 @router.get("/sessions/{session_id}/history", response_model=ChatHistoryResponse)
 async def get_history(session_id: str, req: Request):
     repo = req.app.state.chat_repository
-    
+
     if not repo.session_exists(session_id):
         raise HTTPException(status_code=404, detail="Sesion no encontrada")
-    
+
     return ChatHistoryResponse(
         session_id=session_id,
         history=repo.get_conversation_history(session_id, limit=50),
-        total_messages=repo.get_message_count(session_id)
+        total_messages=repo.get_message_count(session_id),
     )
 
 
@@ -117,5 +123,5 @@ async def health_check(req: Request):
         "status": "healthy",
         "model_loaded": req.app.state.chat_engine.model is not None,
         "database": "sqlite",
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }

@@ -1,11 +1,13 @@
 import os
+import re
 import sys
-from typing import List
+from typing import cast
+
 from llama_cpp import Llama
 
 
 def _unescape(val: str) -> str:
-    return val.replace('\\n', '\n').replace('\\t', '\t')
+    return val.replace("\\n", "\n").replace("\\t", "\t")
 
 
 def parse_toon(content: str) -> dict:
@@ -13,38 +15,42 @@ def parse_toon(content: str) -> dict:
     section = None
     subsection = None
 
-    for line in content.strip().split('\n'):
+    for line in content.strip().split("\n"):
         line = line.rstrip()
-        if not line or line.startswith('#'):
+        if not line or line.startswith("#"):
             continue
 
         stripped = line.lstrip()
         indent = len(line) - len(stripped)
 
         if indent == 0:
-            key = stripped.rstrip(':')
+            key = stripped.rstrip(":")
             section = key
             subsection = None
             result[section] = {}
         elif indent == 2:
-            if stripped.startswith('- '):
+            if stripped.startswith("- "):
                 continue
-            key, _, val = stripped.partition(':')
+            key, _, val = stripped.partition(":")
             key = key.strip()
             raw = val.strip()
-            val = raw.strip('"\'')
+            val = raw.strip("\"'")
             if not val:
                 subsection = key
-                result[section][subsection] = [] if key == 'instructions' else {}
+                result[section][subsection] = [] if key == "instructions" else {}
             else:
                 result[section][key] = _unescape(val)
                 subsection = None
         elif indent == 4 and section:
-            if stripped.startswith('- '):
-                result[section].setdefault('instructions', []).append(stripped[2:].strip())
+            if stripped.startswith("- "):
+                result[section].setdefault("instructions", []).append(
+                    stripped[2:].strip()
+                )
             elif subsection:
-                key, _, val = stripped.partition(':')
-                result[section][subsection][key.strip()] = _unescape(val.strip().strip('"\''))
+                key, _, val = stripped.partition(":")
+                result[section][subsection][key.strip()] = _unescape(
+                    val.strip().strip("\"'")
+                )
 
     return result
 
@@ -61,7 +67,7 @@ def load_config() -> dict:
 
 
 class ChatEngine:
-    def __init__(self, model_path: str = None):
+    def __init__(self, model_path: str | None = None):
         self.model_path = self._find_model(model_path)
         self.model_name = os.path.basename(self.model_path)
         self.config = load_config()
@@ -72,7 +78,7 @@ class ChatEngine:
 
         if model_path and os.path.exists(model_path):
             if os.path.isdir(model_path):
-                models = [f for f in os.listdir(model_path) if f.endswith('.gguf')]
+                models = [f for f in os.listdir(model_path) if f.endswith(".gguf")]
                 if env_model:
                     match = [m for m in models if env_model.lower() in m.lower()]
                     if match:
@@ -83,15 +89,17 @@ class ChatEngine:
                 return model_path
 
         search_dirs = []
-        if getattr(sys, 'frozen', False):
+        if getattr(sys, "frozen", False):
             search_dirs.append(os.path.dirname(sys.executable))
         else:
-            search_dirs.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            search_dirs.append(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            )
 
         for base_dir in search_dirs:
             model_dir = os.path.join(base_dir, "model")
             if os.path.isdir(model_dir):
-                models = [f for f in os.listdir(model_dir) if f.endswith('.gguf')]
+                models = [f for f in os.listdir(model_dir) if f.endswith(".gguf")]
                 if env_model:
                     match = [m for m in models if env_model.lower() in m.lower()]
                     if match:
@@ -99,7 +107,9 @@ class ChatEngine:
                 if models:
                     return os.path.join(model_dir, models[0])
 
-        raise FileNotFoundError("No .gguf model found. Place a model file in the 'model/' folder.")
+        raise FileNotFoundError(
+            "No .gguf model found. Place a model file in the 'model/' folder."
+        )
 
     def _load_model(self):
         threads = min(8, os.cpu_count() or 4)
@@ -110,14 +120,16 @@ class ChatEngine:
             n_batch=512,
             n_gpu_layers=0,
             use_mmap=True,
-            verbose=False
+            verbose=False,
         )
 
     def _build_system(self) -> str:
         instructions = self.config.get("system", {}).get("instructions", [])
         if isinstance(instructions, str):
             instructions = [instructions]
-        desc = self.config.get("system", {}).get("description", "English tutor for Spanish-speaking children")
+        desc = self.config.get("system", {}).get(
+            "description", "English tutor for Spanish-speaking children"
+        )
         intro = f"I am AprendeMas, {desc}."
         examples = (
             "EXAMPLES of correct responses:\n"
@@ -140,9 +152,15 @@ class ChatEngine:
 
     def _filter_reasoning(self, text: str) -> str:
         import re
+
         return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 
-    def _build_messages(self, user_message: str, conversation_history: List[dict], show_thinking: bool = False) -> List[dict]:
+    def _build_messages(
+        self,
+        user_message: str,
+        conversation_history: list[dict],
+        show_thinking: bool = False,
+    ) -> list[dict]:
         max_context = int(self.config.get("conversation", {}).get("max_context", 6))
         messages = [{"role": "system", "content": self._build_system()}]
         for msg in conversation_history[-max_context:]:
@@ -152,9 +170,22 @@ class ChatEngine:
         messages.append({"role": "user", "content": content})
         return messages
 
-    def generate_response(self, user_message: str, conversation_history: List[dict], show_thinking: bool = False):
-        messages = self._build_messages(user_message, conversation_history, show_thinking=show_thinking)
-        kwargs = dict(messages=messages, max_tokens=1500, temperature=0.7, top_p=0.8, presence_penalty=0.5)
+    def generate_response(
+        self,
+        user_message: str,
+        conversation_history: list[dict],
+        show_thinking: bool = False,
+    ):
+        messages = self._build_messages(
+            user_message, conversation_history, show_thinking=show_thinking
+        )
+        kwargs = {
+            "messages": messages,
+            "max_tokens": 1500,
+            "temperature": 0.7,
+            "top_p": 0.8,
+            "presence_penalty": 0.5,
+        }
         if not show_thinking:
             kwargs["reasoning_format"] = "none"
             kwargs["reasoning_budget"] = 0
@@ -169,8 +200,7 @@ class ChatEngine:
             except TypeError:
                 kwargs.pop("reasoning_format", None)
                 response = self.model.create_chat_completion(**kwargs)
-        result = response["choices"][0]["message"]["content"].strip()
-        import re
+        result = cast(dict, response)["choices"][0]["message"]["content"].strip()
         m = re.search(r"<think>(.*?)</think>", result, flags=re.DOTALL)
         reasoning = m.group(1).strip() if m else ""
         content = re.sub(r"<think>.*?</think>", "", result, flags=re.DOTALL).strip()
@@ -194,9 +224,23 @@ class ChatEngine:
 
         return title if title else "Chat"
 
-    def generate_stream(self, user_message: str, conversation_history: List[dict], show_thinking: bool = False):
-        messages = self._build_messages(user_message, conversation_history, show_thinking=show_thinking)
-        kwargs = dict(messages=messages, max_tokens=1500, temperature=0.7, top_p=0.8, presence_penalty=0.5, stream=True)
+    def generate_stream(
+        self,
+        user_message: str,
+        conversation_history: list[dict],
+        show_thinking: bool = False,
+    ):
+        messages = self._build_messages(
+            user_message, conversation_history, show_thinking=show_thinking
+        )
+        kwargs = {
+            "messages": messages,
+            "max_tokens": 1500,
+            "temperature": 0.7,
+            "top_p": 0.8,
+            "presence_penalty": 0.5,
+            "stream": True,
+        }
         if not show_thinking:
             kwargs["reasoning_format"] = "none"
             kwargs["reasoning_budget"] = 0
@@ -217,7 +261,7 @@ class ChatEngine:
         buffer = ""
         in_think = False
         for output in stream:
-            delta = output["choices"][0].get("delta", {})
+            delta = cast(dict, output)["choices"][0].get("delta", {})
             token = delta.get("content")
             if not token:
                 continue
@@ -227,9 +271,9 @@ class ChatEngine:
                     ci = buffer.find(THINK_CLOSE)
                     if ci == -1:
                         if len(buffer) > len(THINK_CLOSE):
-                            buffer = buffer[-len(THINK_CLOSE):]
+                            buffer = buffer[-len(THINK_CLOSE) :]
                         break
-                    buffer = buffer[ci + len(THINK_CLOSE):]
+                    buffer = buffer[ci + len(THINK_CLOSE) :]
                     in_think = False
                 else:
                     oi = buffer.find(THINK_OPEN)
@@ -246,8 +290,7 @@ class ChatEngine:
                         break
                     if oi > 0:
                         yield {"content": buffer[:oi]}
-                    buffer = buffer[oi + len(THINK_OPEN):]
+                    buffer = buffer[oi + len(THINK_OPEN) :]
                     in_think = True
         if not in_think and buffer:
             yield {"content": buffer}
-
