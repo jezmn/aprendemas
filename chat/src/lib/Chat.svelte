@@ -2,7 +2,6 @@
     import { onMount, onDestroy } from "svelte";
     import { marked } from "marked";
     import {
-        Brain,
         BrainCircuit,
         Sparkles,
         Trash2,
@@ -26,6 +25,8 @@
     let messages = $state([]);
     let inputMessage = $state("");
     let isLoading = $state(false);
+    let hasWarmedUp = $state(false);
+    let showWakePopup = $state(false);
     let sessionId = $state(null);
     let sessionTitle = $state("");
     /** @type {HTMLDivElement | null} */
@@ -193,6 +194,7 @@
         messages = [...messages, { role: "user", content: userMessage }];
         scrollToBottom();
         isLoading = true;
+        if (!hasWarmedUp) showWakePopup = true;
 
         const controller = new AbortController();
         abortController = controller;
@@ -233,6 +235,7 @@
                                 fullContent += data.token;
                                 if (!started) {
                                     started = true;
+                                    showWakePopup = false;
                                     messages = [
                                         ...messages,
                                         {
@@ -276,6 +279,8 @@
             }
         } finally {
             isLoading = false;
+            hasWarmedUp = true;
+            showWakePopup = false;
             if (abortController === controller) abortController = null;
             scrollToBottom();
             if (!abortedByUser && messageQueue.length > 0) {
@@ -390,7 +395,7 @@
         return null;
     }
 
-    async function playBuffer(ctx, arrayBuffer, sampleRate, startOffset = 0) {
+    async function playBuffer(ctx, arrayBuffer, sampleRate, startOffset = 0, runId = 0) {
         const bytes = new Uint8Array(arrayBuffer);
         const samples = new Int16Array(
             bytes.buffer,
@@ -415,12 +420,34 @@
             let finished = false;
             const done = () => {
                 if (finished) return;
+                if (speechState === "paused") {
+                    setTimeout(done, 100);
+                    return;
+                }
+                if (runId !== speechRunId) {
+                    finished = true;
+                    resolve();
+                    return;
+                }
                 finished = true;
                 resolve();
             };
             src.onended = done;
             src.start(0, 0);
             setTimeout(done, (len / rate) * 1000 + 200);
+        });
+    }
+
+    function waitWhilePaused(runId) {
+        return new Promise((resolve) => {
+            const check = () => {
+                if (runId !== speechRunId || speechState !== "paused") {
+                    resolve();
+                } else {
+                    setTimeout(check, 100);
+                }
+            };
+            check();
         });
     }
 
@@ -433,6 +460,11 @@
         if (runId !== speechRunId || segmentIndex >= segments.length) {
             clearSpeechState();
             return;
+        }
+
+        if (speechState === "paused") {
+            await waitWhilePaused(runId);
+            if (runId !== speechRunId) return;
         }
 
         const segment = segments[segmentIndex];
@@ -455,13 +487,19 @@
             audio.arrayBuffer,
             audio.sampleRate,
             segmentOffset,
+            runId,
         );
+        if (runId !== speechRunId) return;
+
+        await waitWhilePaused(runId);
         if (runId !== speechRunId) return;
 
         if (segmentIndex < segments.length - 1) {
             await new Promise((r) =>
                 setTimeout(r, segments[segmentIndex].pauseMs ?? 250),
             );
+            await waitWhilePaused(runId);
+            if (runId !== speechRunId) return;
         }
 
         await playSegments(segments, runId, segmentIndex + 1, 0);
@@ -738,8 +776,15 @@
         class={`fixed inset-y-0 left-0 z-50 flex w-80 flex-col bg-white/78 shadow-sm  transition-all duration-300 lg:static lg:z-0 lg:translate-x-0 ${sidebarCollapsed ? "lg:w-18" : "lg:w-80"} ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
     >
         <div
-            class={`flex justify-end border-b border-blue-100/80 pb-2 pt-3 ${sidebarCollapsed ? "px-3" : "px-5"}`}
+            class={`flex items-center justify-between pb-2 pt-5 ${sidebarCollapsed ? "px-3" : "px-5"}`}
         >
+            {#if !sidebarCollapsed}
+                <div
+                    class="flex h-12 items-center justify-center rounded-2xl px-1"
+                >
+                    <img src="/logo.png" alt="AprendeMas" class="h-14 w-auto object-contain" />
+                </div>
+            {/if}
             <button
                 onclick={toggleSidebarCollapsed}
                 class="rounded-xl p-1.5 text-slate-500 transition-all hover:bg-blue-50 hover:text-blue-700 cursor-pointer"
@@ -754,25 +799,8 @@
             </button>
         </div>
         <div
-            class={`border-b border-blue-100/80 pb-5 pt-3 ${sidebarCollapsed ? "px-3" : "px-5"}`}
+            class={`border-b border-blue-100/80 pb-5 pt-4 ${sidebarCollapsed ? "px-3" : "px-5"}`}
         >
-            <div
-                class={`mb-4 flex items-center ${sidebarCollapsed ? "justify-center" : "gap-3"}`}
-            >
-                <div
-                    class="flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br from-blue-600 via-blue-500 to-sky-400 text-white shadow-lg shadow-blue-200"
-                >
-                    <Brain class="h-6 w-6" stroke-width="1.8" />
-                </div>
-                {#if !sidebarCollapsed}
-                    <div
-                        class="text-lg font-black tracking-tight text-slate-900"
-                    >
-                        AprendeMas
-                    </div>
-                {/if}
-            </div>
-
             <button
                 onclick={startNewChat}
                 class={`flex w-full items-center justify-center rounded-2xl bg-linear-to-r from-blue-600 via-blue-500 to-sky-500 py-3 font-bold text-white shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5 hover:shadow-xl cursor-pointer ${sidebarCollapsed ? "px-0" : "gap-2 px-4"}`}
@@ -1213,31 +1241,6 @@
                                 Detener
                             </button>
                         {/if}
-                        {#if ttsSupported && getLatestAssistantMessage() && hasEnglishSpeech(getLatestAssistantMessage().message) && !isLoading && speechState !== "speaking"}
-                            <button
-                                onclick={() => {
-                                    const latest = getLatestAssistantMessage();
-                                    if (latest)
-                                        toggleSpeech(
-                                            latest.message,
-                                            latest.index,
-                                        );
-                                }}
-                                class="flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 cursor-pointer"
-                                aria-label="Leer la última respuesta"
-                            >
-                                {#if speechState === "paused" && speakingMessageIndex === getLatestAssistantMessage()?.index}
-                                    <Play class="h-3.5 w-3.5" />
-                                    Reanudar voz
-                                {:else if speechState === "speaking" && speakingMessageIndex === getLatestAssistantMessage()?.index}
-                                    <Pause class="h-3.5 w-3.5" />
-                                    Pausar voz
-                                {:else}
-                                    <Mic class="h-3.5 w-3.5" />
-                                    Leer última respuesta
-                                {/if}
-                            </button>
-                        {/if}
                     </div>
                 </div>
                 <div class="flex items-end gap-3">
@@ -1263,6 +1266,24 @@
             </div>
         </div>
     </main>
+
+    {#if showWakePopup}
+        <div
+            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm"
+        >
+            <div
+                class="mx-4 w-full max-w-sm rounded-3xl bg-white p-6 text-center shadow-2xl"
+            >
+                <div class="mb-3 text-4xl animate-pulse">💤</div>
+                <div class="text-lg font-black text-slate-900">
+                    AprendeMas se está despertando...
+                </div>
+                <div class="mt-2 text-sm text-slate-600">
+                    Espera unos segundos mientras carga el modelo.
+                </div>
+            </div>
+        </div>
+    {/if}
 </div>
 
 <style>

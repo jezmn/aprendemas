@@ -57,6 +57,18 @@ async def lifespan(app: FastAPI):
     app.state.chat_engine = ChatEngine(MODEL_DIR)
     app.state.chat_repository = ChatRepository(DATABASE_PATH)
     app.state.model_name = app.state.chat_engine.model_name
+
+    # Warm up models in the background so the first request is not slow.
+    def _warmup():
+        try:
+            from core.tts import available_langs, synth
+
+            if available_langs():
+                synth("hi", "en")
+        except Exception:  # noqa: BLE001
+            pass
+    threading.Thread(target=_warmup, daemon=True).start()
+
     yield
 
 
