@@ -39,7 +39,7 @@ Repeat on version updates.
 ```bash
 cd chat && pnpm run build && cd ..
 pip install pyinstaller
-pyinstaller AprendeMas.spec
+pyinstaller aprendemas.spec
 ```
 
 Output: `dist/AprendeMas/` (a folder). Zip it with `model/` and `voices/`.

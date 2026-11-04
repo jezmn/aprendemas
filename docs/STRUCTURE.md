@@ -13,5 +13,6 @@ aprendemas/
 ├── voices/       # Piper voice models (git-ignored)
 ├── main.py       # app entry point
 ├── config.py     # paths and defaults
-└── AprendeMas.spec # PyInstaller build spec
+├── aprendemas.spec # PyInstaller build spec
+└── preview.png   # screenshot for the README
 ```

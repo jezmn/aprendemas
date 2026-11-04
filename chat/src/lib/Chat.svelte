@@ -191,6 +191,16 @@
         suggestions = [];
     }
 
+    function toggleSidebar() {
+        sidebarOpen = !sidebarOpen;
+        // En teléfono el drawer siempre se muestra completo: el modo
+        // colapsado (iconitos) es un concepto de escritorio.
+        if (sidebarOpen && typeof window !== "undefined" && window.innerWidth < 1024 && sidebarCollapsed) {
+            sidebarCollapsed = false;
+            localStorage.setItem("AprendeMas_sidebar_collapsed", "false");
+        }
+    }
+
     function startEditName() {
         tempName = userName;
         editingName = true;
@@ -349,7 +359,7 @@
 </script>
 
 <div
-    class="flex h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.18),transparent_32%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.12),transparent_28%),linear-gradient(180deg,#fbfdff_0%,#f2f8ff_42%,#eef6ff_100%)] text-slate-800"
+    class="flex h-dvh overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.18),transparent_32%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.12),transparent_28%),linear-gradient(180deg,#fbfdff_0%,#f2f8ff_42%,#eef6ff_100%)] text-slate-800"
 >
     <ChatSidebar
         {sessions}
@@ -369,8 +379,8 @@
             <div class="flex w-full items-center justify-between gap-4">
                 <div class="flex min-w-0 items-center gap-3">
                     <button
-                        onclick={() => (sidebarOpen = !sidebarOpen)}
-                        class="rounded-2xl border border-blue-200 bg-white p-2.5 text-blue-700 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer lg:hidden"
+                        onclick={toggleSidebar}
+                        class="rounded-xl border-[3px] border-black bg-amber-200 p-2.5 text-black shadow-[3px_3px_0_0_#000] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_#000] active:translate-y-0 active:shadow-[2px_2px_0_0_#000] cursor-pointer lg:hidden"
                         aria-label="Abrir sidebar"
                     >
                         <PanelLeft class="h-5 w-5" />
@@ -392,7 +402,7 @@
                             bind:value={tempName}
                             onkeydown={handleNameKeydown}
                             onblur={saveName}
-                            class="w-36 rounded-xl border-[3px] border-black bg-white px-3 py-2 text-sm font-bold text-slate-900 outline-none shadow-[3px_3px_0_0_#000] focus:bg-amber-100 focus:shadow-[4px_4px_0_0_#000] transition-all"
+                            class="w-36 rounded-xl border-[3px] border-black bg-white px-3 py-2 text-base md:text-sm font-bold text-slate-900 outline-none shadow-[3px_3px_0_0_#000] focus:bg-amber-100 focus:shadow-[4px_4px_0_0_#000] transition-all"
                             placeholder="Tu nombre"
                         />
                     {:else}
@@ -422,7 +432,7 @@
         </header>
 
         <div
-            class="min-h-0 flex-1 overflow-y-auto px-4 py-8 md:px-6"
+            class="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6 md:py-8"
             bind:this={messagesContainer}
             aria-live="polite"
             aria-atomic="false"
@@ -449,7 +459,7 @@
                                 </p>
 
                                 <div
-                                    class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+                                    class="mt-8 grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4"
                                 >
                                     {#each Object.entries(GAMES) as [key, { title, image }]}
                                         <button

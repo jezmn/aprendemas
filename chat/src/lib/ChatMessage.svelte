@@ -39,7 +39,7 @@
         <div
             class={`min-w-0 flex-1 rounded-2xl border-[3px] border-black px-5 py-4 shadow-[4px_4px_0_0_#000] ${message.role === "user" ? "bg-amber-100 text-slate-900" : "bg-white text-slate-900"}`}
         >
-            <div class="mb-2 flex items-center justify-between gap-3">
+            <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
                 <div
                     class={`text-xs font-semibold uppercase tracking-[0.22em] ${message.role === "user" ? "text-slate-500" : "text-blue-500"}`}
                 >

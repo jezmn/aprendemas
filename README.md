@@ -1,6 +1,8 @@
-# AprendeMas
+# Aprende+
 
 An English tutor that runs on your own computer. Load a GGUF model and practice grammar, vocabulary, stories, and conversation at A1-A2 level.
+
+![Captura de Aprende+](preview.png)
 
 Runs on llama-cpp-python, with a FastAPI backend and a Svelte chat UI.
 

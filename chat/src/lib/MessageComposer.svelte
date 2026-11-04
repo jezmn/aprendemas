@@ -1,4 +1,5 @@
 <script>
+    import { onMount } from "svelte";
     import { Send, Square } from "lucide-svelte";
 
     let {
@@ -9,6 +10,17 @@
         onstop,
     } = $props();
 
+    // Placeholder más corto en teléfono para que entre entero en pantallas angostas.
+    let isPhone = $state(false);
+
+    onMount(() => {
+        const mq = window.matchMedia("(max-width: 767px)");
+        const apply = () => (isPhone = mq.matches);
+        apply();
+        mq.addEventListener("change", apply);
+        return () => mq.removeEventListener("change", apply);
+    });
+
     function handleKeydown(e) {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
@@ -17,7 +29,7 @@
     }
 </script>
 
-<div class="bg-transparent px-4 py-8 md:px-6 md:py-10">
+<div class="bg-transparent px-4 py-4 md:px-6 md:py-10">
     <div class="mx-auto w-full max-w-4xl">
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
             {#if isLoading}
@@ -56,10 +68,14 @@
         <div class="flex items-end gap-3">
             <textarea
                 bind:value={inputMessage}
-                placeholder="Pregunta cualquier cosa para aprender inglés"
+                placeholder={
+                    isPhone
+                        ? "Pregunta cualquier cosa"
+                        : "Pregunta cualquier cosa para aprender inglés"
+                }
                 onkeydown={handleKeydown}
                 rows="1"
-                class="min-h-14 flex-1 resize-none rounded-2xl border-[3px] border-black bg-white px-5 py-4 text-[15px] text-slate-900 outline-none transition placeholder:text-slate-500 focus:shadow-[4px_4px_0_0_#000]"
+                class="min-h-14 flex-1 resize-none rounded-2xl border-[3px] border-black bg-white px-5 py-4 text-base md:text-[15px] text-slate-900 outline-none transition placeholder:text-slate-500 focus:shadow-[4px_4px_0_0_#000]"
             ></textarea>
 
             {#if !isLoading}

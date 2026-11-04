@@ -82,7 +82,7 @@ import { PanelLeft, Sparkles, Trash2, MessageSquare } from "lucide-svelte";
 ></div>
 
 <aside
-    class={`fixed inset-y-0 left-0 z-50 relative flex flex-col bg-amber-50 border-r-[3px] border-black ${resizing ? "transition-none" : "transition-[width,transform] duration-300"} lg:static lg:z-0 lg:translate-x-0 ${sidebarCollapsed ? "lg:w-18" : ""} ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+    class={`fixed inset-y-0 left-0 z-50 max-w-[92vw] flex flex-col bg-amber-50 border-r-[3px] border-black ${resizing ? "transition-none" : "transition-[width,transform] duration-300"} lg:max-w-none lg:relative lg:z-0 lg:translate-x-0 ${sidebarCollapsed ? "lg:w-18" : ""} ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
     style={sidebarCollapsed ? "" : `width: ${sidebarWidth}px`}
 >
     <div
@@ -103,7 +103,7 @@ import { PanelLeft, Sparkles, Trash2, MessageSquare } from "lucide-svelte";
                     String(sidebarCollapsed),
                 );
             }}
-            class="rounded-xl border-[3px] border-black bg-amber-200 p-2.5 text-black shadow-[3px_3px_0_0_#000] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_#000] cursor-pointer"
+            class="max-lg:hidden rounded-xl border-[3px] border-black bg-amber-200 p-2.5 text-black shadow-[3px_3px_0_0_#000] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_#000] cursor-pointer"
             aria-label={sidebarCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
             title={sidebarCollapsed ? "Expandir" : "Colapsar"}
         >
