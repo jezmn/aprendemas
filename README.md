@@ -1,19 +1,20 @@
 # AprendeMas
 
-A local, offline-first English tutor powered by LLMs. Runs entirely on your machine — no internet, no data leaves your computer.
+An English tutor that runs on your own computer. Load a GGUF model and practice grammar, vocabulary, stories, and conversation at A1-A2 level.
 
-Designed for kids aged 9–12 at A1–A2 English level. Uses GGUF models via `llama-cpp-python` for grammar, vocabulary, stories, and conversation through a chat UI.
+Runs on llama-cpp-python, with a FastAPI backend and a Svelte chat UI.
+
+> **Note:** This is an educational prototype.
 
 ## Features
 
-- **100% offline** — no API keys, cloud, or tracking.
-- **Streaming responses** — tokens appear in real time.
-- **Persistent history** — SQLite, restored on return.
-- **Multiple sessions** — new/switch/delete chats.
-- **Topic shortcuts** — colors, animals, numbers, stories.
-- **Custom username** — stored in browser.
-- **Voice reader** — reads responses aloud locally (Piper TTS).
-- **Portable build** — runs from a folder, no install, via PyInstaller.
+- Runs fully offline
+- Streaming responses
+- Chat history saved in SQLite
+- Multiple sessions: create, switch, delete
+- Topic shortcuts: colors, animals, numbers, stories
+- Voice reader using Piper TTS
+- Portable build via PyInstaller, runs from a folder
 
 ## Stack
 
@@ -28,15 +29,10 @@ Designed for kids aged 9–12 at A1–A2 English level. Uses GGUF models via `ll
 
 ## Quick start
 
-```bash
-git clone https://github.com/jezmn/aprendemas.git
-cd aprendemas
-python -m venv venv && venv\Scripts\activate
-pip install --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu -r requirements.txt
-cd chat && pnpm install && pnpm run build && cd ..
-# place a .gguf in model/ (see docs/MODEL.md)
-python main.py
-```
+1. Download the latest `AprendeMas-vX.X.X-win-x64.zip` from [Releases](https://github.com/jezmn/aprendemas/releases).
+2. Place a `.gguf` in `model/` (see [docs/MODEL.md](docs/MODEL.md)).
+3. Place Piper voices in `voices/` (see [docs/INSTALLATION.md](docs/INSTALLATION.md)).
+4. Run `AprendeMas.exe`.
 
 Full instructions: [docs/INSTALLATION.md](docs/INSTALLATION.md)
 
@@ -47,17 +43,6 @@ Full instructions: [docs/INSTALLATION.md](docs/INSTALLATION.md)
 - [Building (cross-CPU + release)](docs/BUILDING.md)
 - [Database schema](docs/DATABASE.md)
 - [Project structure](docs/STRUCTURE.md)
-
-## Voice reader (Lector de voz)
-
-Local neural voice (Piper TTS) reads responses aloud — 100% offline, engine in process. To add a voice, drop a Piper model pair into `voices/` (the language is read from the model's own config):
-
-```
-voices/en_US-libritts_r-medium.onnx
-voices/en_US-libritts_r-medium.onnx.json
-```
-
-`voices/` is git-ignored and not bundled into the build, so voices can be swapped without rebuilding (see [docs/BUILDING.md](docs/BUILDING.md)). If no model exists, the reader button is hidden.
 
 ## License
 

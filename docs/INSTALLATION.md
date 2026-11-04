@@ -2,15 +2,12 @@
 
 ## Prerequisites
 
-- Python 3.10+
-- Node.js 18+ and pnpm
-- **Windows:** Visual Studio 2022 Build Tools (to compile `llama-cpp-python`)
+- Python 3.11+
+- Node.js 22+ and pnpm
 
-```powershell
-winget install Microsoft.VisualStudio.2022.BuildTools --override "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
-```
+To compile `llama-cpp-python` from source (cross-CPU), see [docs/BUILDING.md](BUILDING.md).
 
-## Quick start (from source)
+## Development
 
 ```bash
 git clone https://github.com/jezmn/aprendemas.git
@@ -18,7 +15,7 @@ cd aprendemas
 
 # Backend
 python -m venv venv
-venv\Scripts\activate     # Windows
+venv\Scripts\activate
 pip install --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu -r requirements.txt
 
 # Frontend
@@ -31,34 +28,18 @@ cd ..
 python main.py
 ```
 
-The app builds the frontend, starts the server on `http://127.0.0.1:5050`, and opens your browser.
+The app builds the frontend, starts the server on `http://127.0.0.1:5050`.
 
-### Voices (optional)
-
-The reader button only appears if there is a model in `voices/`. They are
-git-ignored, so a fresh clone has none — download the pair you want:
+### Voices
 
 ```bash
 # English (~78 MB)
 curl -L -o voices/en_US-libritts_r-medium.onnx      https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/libritts_r/medium/en_US-libritts_r-medium.onnx
 curl -L -o voices/en_US-libritts_r-medium.onnx.json https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/libritts_r/medium/en_US-libritts_r-medium.onnx.json
-
-# Spanish (~63 MB)
-curl -L -o voices/es_ES-mls_10246-low.onnx      https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/mls_10246/low/es_ES-mls_10246-low.onnx
-curl -L -o voices/es_ES-mls_10246-low.onnx.json https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/mls_10246/low/es_ES-mls_10246-low.onnx.json
 ```
 
+The reader button only appears if a model exists in `voices/`.
 Any Piper voice works; the language is read from the model's config.
-
-## Prebuilt release
-
-1. Download the latest `AprendeMas-vX.X.X-win-x64.zip` from [Releases](https://github.com/jezmn/aprendemas/releases).
-2. Unzip it. You get a folder containing `AprendeMas.exe` (the TTS engine is bundled, so it is a folder and not a single file).
-3. Place the `.gguf` in `model/` (see [docs/MODEL.md](MODEL.md)).
-4. Place the voice models in `voices/` (optional — without them the reader button is hidden).
-5. Run `AprendeMas.exe`.
-
-No Python, Node, or dependencies needed.
 
 ## Cross-CPU compatibility
 

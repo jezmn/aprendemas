@@ -2,7 +2,14 @@
 
 ## Cross-CPU llama-cpp-python
 
+**Windows prerequisite** (to compile `llama-cpp-python`):
+
+```powershell
+winget install Microsoft.VisualStudio.2022.BuildTools --override "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+```
+
 Prebuilt wheels may be compiled with AVX512, causing `OSError: [WinError -1073741795]` on CPUs without AVX512.
+
 
 ### Verify your build
 
@@ -35,11 +42,12 @@ pip install pyinstaller
 pyinstaller AprendeMas.spec
 ```
 
-Output: `dist/AprendeMas/` (a folder — the bundled engine is ~150 MB, onefile would extract it to a temp dir on every launch). It embeds piper + onnxruntime + espeak-ng, so the target machine needs nothing installed. Zip it with `model/` and `voices/` for a portable release:
+Output: `dist/AprendeMas/` (a folder). Zip it with `model/` and `voices/`.
 
 ```
 AprendeMas/
     AprendeMas.exe
-    model/*.gguf
-    voices/*.onnx + *.onnx.json
+    _internal/
+    model/         # see docs/MODEL.md
+    voices/        # see docs/INSTALLATION.md
 ```
