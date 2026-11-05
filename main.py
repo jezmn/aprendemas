@@ -65,8 +65,8 @@ async def lifespan(app: FastAPI):
 
             if available_langs():
                 synth("hi", "en")
-        except Exception:  # noqa: BLE001
-            pass
+        except Exception as exc:  # noqa: BLE001 - warmup must not crash startup
+            print(f"[warn] TTS warmup failed: {exc}", file=sys.stderr)
     threading.Thread(target=_warmup, daemon=True).start()
 
     yield
@@ -75,7 +75,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="AprendeMas",
     description="Chatbot persistente con LLM y SQLite",
-    version="1.0.0",
+    version="1.1.0",
     lifespan=lifespan,
 )
 
@@ -113,18 +113,18 @@ if __name__ == "__main__":
     print(BANNER)
     print("-" * 50)
     if not getattr(sys, "frozen", False):
-        print("[*] Construyendo frontend...")
+        print("[*] Building frontend...")
         frontend_dir = os.path.join(BASE_DIR, "chat")
         pkg_json = os.path.join(frontend_dir, "package.json")
         if os.path.exists(pkg_json) and os.path.exists(
             os.path.join(frontend_dir, "node_modules")
         ):
             subprocess.run(["pnpm", "run", "build"], cwd=frontend_dir, check=False)
-    print(f"[*] Iniciando servidor en el puerto {DEFAULT_PORT}")
+    print(f"[*] Starting server on port {DEFAULT_PORT}")
     open_browser_after_start(DEFAULT_PORT)
     print("-" * 50)
-    print("[OK] AprendeMas esta listo! Abriendo navegador...")
+    print("[OK] AprendeMas is ready! Opening browser...")
     print(f"     http://127.0.0.1:{DEFAULT_PORT}")
     print("-" * 50)
-    print("     Cierra esta ventana cuando quieras salir\n")
+    print("     Close this window to exit\n")
     uvicorn.run(app, host="0.0.0.0", port=DEFAULT_PORT)

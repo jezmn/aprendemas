@@ -10,7 +10,7 @@
         onstop,
     } = $props();
 
-    // Placeholder más corto en teléfono para que entre entero en pantallas angostas.
+    // Shorter placeholder on phones so it fits in narrow screens.
     let isPhone = $state(false);
 
     onMount(() => {
@@ -18,6 +18,7 @@
         const apply = () => (isPhone = mq.matches);
         apply();
         mq.addEventListener("change", apply);
+
         return () => mq.removeEventListener("change", apply);
     });
 
@@ -89,5 +90,7 @@
                 </button>
             {/if}
         </div>
+
+
     </div>
 </div>

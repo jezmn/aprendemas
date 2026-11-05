@@ -1,4 +1,5 @@
 <script>
+import { onMount } from "svelte";
 import { PanelLeft, Sparkles, Trash2, MessageSquare } from "lucide-svelte";
 
     let {
@@ -17,9 +18,7 @@ import { PanelLeft, Sparkles, Trash2, MessageSquare } from "lucide-svelte";
     function startResize(e) {
         if (e.button !== undefined && e.button !== 0) return;
         resizing = true;
-        // One toggle per gesture: after it, pure resize — dragging right
-        // from collapsed expands once (short travel), the width then
-        // follows the pointer from 280 up without re-collapsing.
+        // One toggle per gesture; afterward it becomes a pure resize.
         let base = e.clientX;
         let toggled = false;
         const onMove = (ev) => {
@@ -34,9 +33,7 @@ import { PanelLeft, Sparkles, Trash2, MessageSquare } from "lucide-svelte";
                 }
                 return;
             }
-            // Claude/shadcn pattern: collapse threshold (240) sits BELOW the
-            // expanded min width (280) so releasing at min width can never
-            // accidentally collapse on the next grab (jitter hysteresis).
+            // Collapse threshold stays below min width to avoid jitter.
             if (!toggled && w < 240) {
                 toggled = true;
                 sidebarCollapsed = true;
@@ -68,6 +65,17 @@ import { PanelLeft, Sparkles, Trash2, MessageSquare } from "lucide-svelte";
     function getInitial(str) {
         return str ? str.charAt(0).toUpperCase() : "A";
     }
+
+    let appVersion = $state("1.1.0");
+
+    onMount(() => {
+        fetch("/api/version")
+            .then((r) => r.json())
+            .then((data) => {
+                if (data?.version) appVersion = data.version;
+            })
+            .catch(() => {});
+    });
 </script>
 
 <div
@@ -92,7 +100,7 @@ import { PanelLeft, Sparkles, Trash2, MessageSquare } from "lucide-svelte";
             <img
                 src="/logo.png"
                 alt="AprendeMas"
-                class="h-[5.5rem] w-auto object-contain"
+                class="h-22 w-auto object-contain"
             />
         {/if}
         <button
@@ -131,11 +139,14 @@ import { PanelLeft, Sparkles, Trash2, MessageSquare } from "lucide-svelte";
         class={`min-h-0 flex-1 pb-4 pt-3 ${sidebarCollapsed ? "px-2" : "px-4"}`}
     >
         {#if !sidebarCollapsed}
-            <div class="mb-3 flex items-center px-1">
+            <div class="mb-3 flex items-center justify-between px-1">
                 <div
                     class="text-xs font-bold uppercase tracking-[0.22em] text-slate-500"
                 >
                     Recientes
+                </div>
+                <div class="text-[11px] font-medium text-slate-400 select-none">
+                    v{appVersion}
                 </div>
             </div>
         {/if}
@@ -148,7 +159,7 @@ import { PanelLeft, Sparkles, Trash2, MessageSquare } from "lucide-svelte";
                             onselect(session.session_id);
                             sidebarOpen = false;
                         }}
-                        class={`w-full rounded-xl border-[2px] border-black text-left transition-all cursor-pointer shadow-[3px_3px_0_0_#000] ${sidebarCollapsed ? "p-2.5" : "p-3.5 pr-10"} ${sessionId === session.session_id ? "bg-amber-200" : "bg-white hover:bg-amber-100"}`}
+                        class={`w-full rounded-xl border-2 border-black text-left transition-all cursor-pointer shadow-[3px_3px_0_0_#000] ${sidebarCollapsed ? "p-2.5" : "p-3.5 pr-10"} ${sessionId === session.session_id ? "bg-amber-200" : "bg-white hover:bg-amber-100"}`}
                         aria-label={session.title || "Chat"}
                     >
                         <div
@@ -214,7 +225,7 @@ import { PanelLeft, Sparkles, Trash2, MessageSquare } from "lucide-svelte";
 </aside>
 
 <style>
-    /* Minimalista estilo ChatGPT: solo aparece al pasar el mouse. */
+    /* Thin scrollbar that only appears on hover. */
     .scrollbar-thin {
         scrollbar-width: thin;
         scrollbar-color: transparent transparent;

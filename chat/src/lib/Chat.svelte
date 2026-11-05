@@ -27,7 +27,7 @@
     let abortController = $state(null);
     const API_URL = "/api";
 
-    // Rotating suggestion bank for kids (A1-A2 level) — 3 shown per message.
+    // Rotating suggestion bank for kids (A1-A2). 3 shown per message.
     const SUGGESTION_BANK = [
         "Cuéntame un cuento corto",
         "Enséñame 5 nombres de animales",
@@ -193,8 +193,7 @@
 
     function toggleSidebar() {
         sidebarOpen = !sidebarOpen;
-        // En teléfono el drawer siempre se muestra completo: el modo
-        // colapsado (iconitos) es un concepto de escritorio.
+        // On mobile the drawer is always full: collapsed mode is desktop-only.
         if (sidebarOpen && typeof window !== "undefined" && window.innerWidth < 1024 && sidebarCollapsed) {
             sidebarCollapsed = false;
             localStorage.setItem("AprendeMas_sidebar_collapsed", "false");

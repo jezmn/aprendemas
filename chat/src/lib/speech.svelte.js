@@ -1,7 +1,6 @@
 import { marked } from "marked";
 
-// TTS playback state shared with the UI components.
-// `state` is one of: "idle" | "speaking" | "paused".
+// Shared TTS playback state.
 export const speech = $state({
     supported: false,
     loading: false,
@@ -10,9 +9,10 @@ export const speech = $state({
     text: "",
 });
 
-// Non-reactive internals.
+// Internal, non-reactive.
 let speechRunId = 0;
 let audioCtx = null;
+let activeSource = null;
 
 export function extractReadableText(content) {
     if (!content) return "";
@@ -52,9 +52,17 @@ function clearSpeechState() {
 
 export function stopSpeech() {
     speechRunId += 1;
+    if (activeSource) {
+        try {
+            activeSource.stop();
+        } catch {}
+        activeSource = null;
+    }
     if (audioCtx) {
         try {
-            audioCtx.suspend();
+            if (audioCtx.state === "suspended") {
+                audioCtx.suspend();
+            }
         } catch {}
     }
     clearSpeechState();
@@ -122,18 +130,11 @@ async function playBuffer(
         const src = ctx.createBufferSource();
         src.buffer = buf;
         src.connect(ctx.destination);
+        activeSource = src;
         let finished = false;
         const done = () => {
+            if (activeSource === src) activeSource = null;
             if (finished) return;
-            if (speech.state === "paused") {
-                setTimeout(done, 100);
-                return;
-            }
-            if (runId !== speechRunId) {
-                finished = true;
-                resolve();
-                return;
-            }
             finished = true;
             resolve();
         };
@@ -177,7 +178,7 @@ async function playSegments(
     if (runId !== speechRunId) return;
 
     speech.loading = true;
-    const audio = await fetchTts(segment.text, segment.language);
+    const audio = await fetchTts(segment.text, "en");
     speech.loading = false;
     if (runId !== speechRunId) return;
 
@@ -267,35 +268,12 @@ export function restartSpeech(message, index) {
     speakMessage(message, index);
 }
 
-// --- Language-aware segment splitting -------------------------------------
 
-const ES_WORDS = new Set(
-    "de del al la las los el una uno una para porque pero con como cómo ser estar soy eres es son somos está están estamos nosotros usted tu yo ella ellas ellos verbo verbos ejemplo ejemplos palabra palabras significa estudiante estudiantes amigo amigos inglés aprender buenas hola claro escuela quiero quieres quiere practica practicar cuando dónde aquí algo su les".split(
-        /\s+/,
-    ),
-);
-
-const EN_WORDS = new Set(
-    "the this that these those how what who when where why is are am was were be been being have has had do does did and or with for from not to into on in at by of as it they we you he she his her their our its student teacher friends happy brothers today".split(
-        /\s+/,
-    ),
-);
-
-function detectSegmentLanguage(text) {
-    const t = (text || "").toLowerCase();
-    if (/[ñ¡¿áéíóúü]/.test(t)) return "es";
-    const words = t.match(/[a-záéíóúüñ]+/g) || [];
-    const esHits = words.filter((w) => ES_WORDS.has(w)).length;
-    const enHits = words.filter((w) => EN_WORDS.has(w)).length;
-    return esHits > enHits ? "es" : "en";
-}
-
-function createSpeechSegment(text, language, options = {}) {
+function createSpeechSegment(text, options = {}) {
     const clean = (text || "").replace(/\s+/g, " ").trim();
     if (!clean) return null;
     return {
         text: clean,
-        language: language || "en",
         pauseMs: options.pauseMs ?? 220,
         keepSeparate: !!(options && options.keepSeparate),
     };
@@ -307,14 +285,14 @@ function splitVocabularyList(text) {
     let match;
 
     while ((match = vocabularyPattern.exec(text)) !== null) {
-        const englishTerm = createSpeechSegment(match[1], "en", {
+        const englishTerm = createSpeechSegment(match[1], {
             pauseMs: match[2] ? 120 : 220,
             keepSeparate: true,
         });
         if (englishTerm) segments.push(englishTerm);
 
         if (match[2]) {
-            const translatedTerm = createSpeechSegment(match[2], "es", {
+            const translatedTerm = createSpeechSegment(match[2], {
                 pauseMs: 260,
                 keepSeparate: true,
             });
@@ -329,16 +307,13 @@ function splitMixedLanguageChunk(text) {
     const trimmedText = text.trim();
     if (!trimmedText) return [];
 
-    // Vocabulary lines like "I am = Yo soy": only the English side is spoken.
+    // "word = traducción": only speak the English side.
     const eqIndex = trimmedText.indexOf("=");
     if (eqIndex > 0) {
         const left = trimmedText.slice(0, eqIndex).trim();
         const right = trimmedText.slice(eqIndex + 1).trim();
         if (left && right) {
-            const leftSegment = createSpeechSegment(
-                left,
-                detectSegmentLanguage(left),
-            );
+            const leftSegment = createSpeechSegment(left);
             if (leftSegment) return [leftSegment];
         }
     }
@@ -349,13 +324,7 @@ function splitMixedLanguageChunk(text) {
         const suffix = trimmedText.slice(colonIndex + 1).trim();
 
         if (/\bin english\b/i.test(prefix) && suffix) {
-            const segments = [];
-            const prefixSegment = createSpeechSegment(
-                prefix,
-                detectSegmentLanguage(prefix),
-            );
-            if (prefixSegment) segments.push(prefixSegment);
-
+            const segments = [createSpeechSegment(prefix)];
             const vocabularySegments = splitVocabularyList(suffix);
             if (vocabularySegments.length) {
                 return [...segments, ...vocabularySegments];
@@ -375,8 +344,7 @@ function splitMixedLanguageChunk(text) {
                 ? trimmedPart.slice(1, -1)
                 : trimmedPart;
 
-        const language = detectSegmentLanguage(chunkText);
-        const segment = createSpeechSegment(chunkText, language);
+        const segment = createSpeechSegment(chunkText);
         if (segment) segments.push(segment);
     }
 
@@ -390,7 +358,6 @@ function mergeAdjacentSegments(segments) {
         const previous = merged[merged.length - 1];
         if (
             previous &&
-            previous.language === segment.language &&
             !previous.keepSeparate &&
             !segment.keepSeparate
         ) {
@@ -420,7 +387,7 @@ function buildSpeechSegments(text) {
         const chunkSegments = splitMixedLanguageChunk(phrasePart);
         const endPauseMs = /[,;]$/.test(phrasePart) ? 250 : 420;
         for (let i = 0; i < chunkSegments.length; i++) {
-            // Keep clauses apart so the pause between them survives the merge.
+            // Keep clauses apart so the inter-clause pause survives the merge.
             chunkSegments[i].keepSeparate = true;
             if (i === chunkSegments.length - 1)
                 chunkSegments[i].pauseMs = endPauseMs;
@@ -428,15 +395,9 @@ function buildSpeechSegments(text) {
         }
     }
 
-    // A single English voice reads every segment, no matter its language.
-    return mergeAdjacentSegments(segments).map((segment) => ({
-        ...segment,
-        language: "en",
-    }));
+    return mergeAdjacentSegments(segments);
 }
 
 export function hasEnglishSpeech(message) {
-    const text = extractReadableText(message?.content);
-    if (!text) return false;
-    return buildSpeechSegments(text).some((segment) => segment.language === "en");
+    return !!extractReadableText(message?.content);
 }

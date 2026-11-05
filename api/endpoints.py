@@ -10,6 +10,11 @@ from schemas import ChatHistoryResponse, ChatRequest, ChatResponse
 router = APIRouter()
 
 
+@router.get("/version")
+async def app_version(req: Request):
+    return {"version": req.app.version}
+
+
 class SessionInfo(BaseModel):
     session_id: str
     user_id: str
