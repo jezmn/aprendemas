@@ -75,7 +75,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="AprendeMas",
     description="Chatbot persistente con LLM y SQLite",
-    version="1.1.0",
+    version="1.1.1",
     lifespan=lifespan,
 )
 

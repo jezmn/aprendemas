@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-11-09
+
+### Fixed
+- Concurrent chats no longer crash the server with a segmentation fault:
+  requests now queue and are processed one at a time (the llama.cpp
+  instance is not thread-safe).
+- Mobile layout: no more scrollable blank space under the composer caused
+  by the 100vh vs 100dvh mismatch.
+- UI is scaled down and better spaced on phones (root font 14px), with
+  2 suggestion chips instead of 3.
+
 ## [1.1.0] - 2026-11-04
 
 ### Changed

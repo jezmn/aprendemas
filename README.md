@@ -18,6 +18,17 @@ Runs on llama-cpp-python, with a FastAPI backend and a Svelte chat UI.
 - Voice reader using Piper TTS
 - Portable build via PyInstaller, runs from a folder
 
+## Use it from a phone
+
+Any device on the same local network can open the app from the browser:
+
+1. Start AprendeMas on the PC.
+2. Find the PC's local IP (`ipconfig` on Windows).
+3. On the phone, open `http://<pc-ip>:5050`.
+
+Concurrent users are supported: when several chat at the same time,
+requests are handled one at a time in order.
+
 ## Stack
 
 | Layer | Tech |

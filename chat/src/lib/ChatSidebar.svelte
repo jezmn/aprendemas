@@ -66,7 +66,7 @@ import { PanelLeft, Sparkles, Trash2, MessageSquare } from "lucide-svelte";
         return str ? str.charAt(0).toUpperCase() : "A";
     }
 
-    let appVersion = $state("1.1.0");
+    let appVersion = $state("1.1.1");
 
     onMount(() => {
         fetch("/api/version")
