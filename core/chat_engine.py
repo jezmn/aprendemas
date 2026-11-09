@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import threading
 from typing import cast
 
 from llama_cpp import Llama
@@ -72,6 +73,7 @@ class ChatEngine:
         self.model_name = os.path.basename(self.model_path)
         self.config = load_config()
         self.model = self._load_model()
+        self._lock = threading.Lock()
 
     def _find_model(self, model_path: str | None = None) -> str:
         env_model = os.environ.get("APRENDEMAS_MODEL")
@@ -176,6 +178,17 @@ class ChatEngine:
         conversation_history: list[dict],
         show_thinking: bool = False,
     ):
+        with self._lock:
+            return self._generate_response(
+                user_message, conversation_history, show_thinking
+            )
+
+    def _generate_response(
+        self,
+        user_message: str,
+        conversation_history: list[dict],
+        show_thinking: bool = False,
+    ):
         messages = self._build_messages(
             user_message, conversation_history, show_thinking=show_thinking
         )
@@ -225,6 +238,20 @@ class ChatEngine:
         return title if title else "Chat"
 
     def generate_stream(
+        self,
+        user_message: str,
+        conversation_history: list[dict],
+        show_thinking: bool = False,
+    ):
+        def _locked():
+            with self._lock:
+                yield from self._generate_stream(
+                    user_message, conversation_history, show_thinking
+                )
+
+        return _locked()
+
+    def _generate_stream(
         self,
         user_message: str,
         conversation_history: list[dict],

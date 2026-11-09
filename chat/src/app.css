@@ -10,10 +10,18 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
+@media (max-width: 767px) {
+    :root {
+        font-size: 14px;
+    }
+}
+
 html,
 body,
 #app {
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
 }
 
 body {

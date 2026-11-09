@@ -99,11 +99,12 @@
 
     function nextSuggestions() {
         const n = SUGGESTION_BANK.length;
+        const count = window.innerWidth < 640 ? 2 : 3;
         const picked = [];
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < count; i++) {
             picked.push(SUGGESTION_BANK[(suggestionOffset + i) % n]);
         }
-        suggestionOffset = (suggestionOffset + 3) % n;
+        suggestionOffset = (suggestionOffset + count) % n;
         return picked;
     }
 
@@ -373,7 +374,7 @@
 
     <main class="flex min-w-0 flex-1 flex-col">
         <header
-            class="border-b-[3px] border-black bg-amber-50 px-4 py-4 md:px-6"
+            class="border-b-[3px] border-black bg-amber-50 px-3 py-3 md:px-6 md:py-4"
         >
             <div class="flex w-full items-center justify-between gap-4">
                 <div class="flex min-w-0 items-center gap-3">
@@ -387,7 +388,7 @@
 
                     <div class="min-w-0">
                         <div
-                            class="truncate rounded-xl border-2 border-black bg-amber-200 px-3 py-1 text-lg font-bold tracking-tight text-black shadow-[2px_2px_0_0_#000]"
+                            class="truncate rounded-xl border-2 border-black bg-amber-200 px-3 py-1 text-base font-bold tracking-tight text-black shadow-[2px_2px_0_0_#000] md:text-lg"
                         >
                             {sessionTitle || "Nueva conversación"}
                         </div>
@@ -431,7 +432,7 @@
         </header>
 
         <div
-            class="min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6 md:py-8"
+            class="min-h-0 flex-1 overflow-y-auto px-3 py-5 md:px-6 md:py-8"
             bind:this={messagesContainer}
             aria-live="polite"
             aria-atomic="false"
@@ -442,11 +443,11 @@
                         class="flex flex-1 items-center justify-center py-6"
                     >
                         <div
-                            class="w-full max-w-4xl rounded-3xl border-[3px] border-black bg-white p-6 shadow-[6px_6px_0_0_#000] md:p-8"
+                            class="w-full max-w-4xl rounded-3xl border-[3px] border-black bg-white p-5 shadow-[6px_6px_0_0_#000] md:p-8"
                         >
                             <div class="mx-auto max-w-3xl text-center">
                                 <h1
-                                    class="text-4xl font-black leading-tight tracking-tight text-slate-900 md:text-5xl"
+                                    class="text-3xl font-black leading-tight tracking-tight text-slate-900 md:text-5xl"
                                 >
                                     Hola, {userName}
                                 </h1>
@@ -463,12 +464,12 @@
                                     {#each Object.entries(GAMES) as [key, { title, image }]}
                                         <button
                                             onclick={() => startGame(key)}
-                                            class="group rounded-2xl border-[3px] border-black bg-amber-200 p-5 text-center shadow-[5px_5px_0_0_#000] transition-all hover:-translate-y-1 hover:shadow-[7px_7px_0_0_#000] active:translate-y-0 active:shadow-[3px_3px_0_0_#000] cursor-pointer"
+                                            class="group rounded-2xl border-[3px] border-black bg-amber-200 p-4 text-center shadow-[5px_5px_0_0_#000] transition-all hover:-translate-y-1 hover:shadow-[7px_7px_0_0_#000] active:translate-y-0 active:shadow-[3px_3px_0_0_#000] cursor-pointer"
                                         >
                                             <img
                                                 src={image}
                                                 alt={title}
-                                                class="mb-3 mx-auto h-20 w-20 object-contain transition-transform group-hover:scale-110"
+                                                class="mb-3 mx-auto h-16 w-16 object-contain transition-transform group-hover:scale-110 md:h-20 md:w-20"
                                                 draggable="false"
                                             />
                                             <div
@@ -485,8 +486,10 @@
                 {/if}
 
                 {#if messages.length > 0}
-                    <section class="space-y-5 py-2">
-                        {#each messages as message, index}
+                    <section
+                        class="space-y-6 py-3 md:py-2 sm:space-y-5"
+                    >
+                    {#each messages as message, index}
                             {#if message.role !== "system"}
                                 <ChatMessage
                                     {message}

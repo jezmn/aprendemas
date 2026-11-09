@@ -30,7 +30,7 @@
     }
 </script>
 
-<div class="bg-transparent px-4 py-4 md:px-6 md:py-10">
+<div class="bg-transparent px-3 pb-4 pt-2 md:px-6 md:py-10">
     <div class="mx-auto w-full max-w-4xl">
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
             {#if isLoading}
@@ -52,7 +52,7 @@
             </div>
         </div>
         {#if suggestions.length && !isLoading}
-            <div class="mb-3 flex flex-wrap gap-2">
+            <div class="mb-4 flex flex-wrap gap-2 md:mb-3">
                 {#each suggestions as sug}
                     <button
                         onclick={() => {
@@ -76,14 +76,14 @@
                 }
                 onkeydown={handleKeydown}
                 rows="1"
-                class="min-h-14 flex-1 resize-none rounded-2xl border-[3px] border-black bg-white px-5 py-4 text-base md:text-[15px] text-slate-900 outline-none transition placeholder:text-slate-500 focus:shadow-[4px_4px_0_0_#000]"
+                class="min-h-12 flex-1 resize-none rounded-2xl border-[3px] border-black bg-white px-4 py-3 text-base md:min-h-14 md:px-5 md:py-4 md:text-[15px] text-slate-900 outline-none transition placeholder:text-slate-500 focus:shadow-[4px_4px_0_0_#000]"
             ></textarea>
 
             {#if !isLoading}
                 <button
                     onclick={onsend}
                     disabled={!inputMessage.trim()}
-                    class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border-[3px] border-black bg-amber-300 text-black shadow-[4px_4px_0_0_#000] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_#000] active:translate-y-0 active:shadow-[2px_2px_0_0_#000] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                    class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-[3px] border-black bg-amber-300 text-black shadow-[4px_4px_0_0_#000] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_#000] active:translate-y-0 active:shadow-[2px_2px_0_0_#000] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer md:h-14 md:w-14"
                     aria-label="Enviar"
                 >
                     <Send class="h-5 w-5" />

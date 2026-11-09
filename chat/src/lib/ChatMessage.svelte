@@ -22,22 +22,22 @@
     );
 </script>
 
-<div class={`flex gap-4 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+<div class={`flex gap-3 md:gap-4 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
     <div
-        class={`flex w-full max-w-3xl gap-4 ${message.role === "user" ? "flex-row-reverse" : ""}`}
+        class={`flex w-full max-w-3xl gap-3 md:gap-4 ${message.role === "user" ? "flex-row-reverse" : ""}`}
     >
         <div
-            class={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border-[3px] border-black shadow-[3px_3px_0_0_#000] ${message.role === "user" ? "bg-slate-800 text-white" : "bg-amber-200 text-black"}`}
+            class={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-[3px] border-black shadow-[3px_3px_0_0_#000] md:h-11 md:w-11 ${message.role === "user" ? "bg-slate-800 text-white" : "bg-amber-200 text-black"}`}
         >
             {#if message.role === "user"}
-                <User class="h-5 w-5" />
+                <User class="h-4 w-4 md:h-5 md:w-5" />
             {:else}
-                <BrainCircuit class="h-5 w-5" />
+                <BrainCircuit class="h-4 w-4 md:h-5 md:w-5" />
             {/if}
         </div>
 
         <div
-            class={`min-w-0 flex-1 rounded-2xl border-[3px] border-black px-5 py-4 shadow-[4px_4px_0_0_#000] ${message.role === "user" ? "bg-amber-100 text-slate-900" : "bg-white text-slate-900"}`}
+            class={`min-w-0 flex-1 rounded-2xl border-[3px] border-black px-4 py-3 shadow-[4px_4px_0_0_#000] md:px-5 md:py-4 ${message.role === "user" ? "bg-amber-100 text-slate-900" : "bg-white text-slate-900"}`}
         >
             <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
                 <div
@@ -87,7 +87,7 @@
                 {/if}
             </div>
             <div
-                class="prose prose-sm max-w-none text-[15px] leading-7 prose-headings:text-slate-900 prose-p:text-slate-700 prose-strong:text-slate-900 prose-li:text-slate-700"
+                class="prose prose-sm max-w-none text-sm leading-6 md:text-[15px] md:leading-7 prose-headings:text-slate-900 prose-p:text-slate-700 prose-strong:text-slate-900 prose-li:text-slate-700"
             >
                 {@html marked.parse(message.content)}
             </div>
